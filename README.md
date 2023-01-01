@@ -1,1 +1,27 @@
 # MIPS-CPU-simulator
+
+## Global tasks
+
+---
+
+### CPU units :
+
+- [ ] Instruction memory
+- [ ] Data memory
+- [ ] Registers
+- [ ] ALU
+- [ ] Control
+- [ ] ALU Control
+- [ ] PC
+- [ ] Add unit for the PC
+
+### Controls lines
+
+- [ ] Link every unit by controls lines when they will be implemented
+
+---
+
+### Additional work :
+
+- [ ] Interface implementation
+- [ ] User manual
