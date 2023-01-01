@@ -2,8 +2,6 @@
 
 ## Global tasks
 
----
-
 ### CPU units :
 
 - [ ] Instruction memory
