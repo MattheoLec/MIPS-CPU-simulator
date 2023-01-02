@@ -7,9 +7,9 @@
 - [ ] Instruction memory
 - [ ] Data memory
 - [ ] Registers
-- [ ] ALU
+- [x] ALU
 - [ ] Control
-- [ ] ALU Control
+- [x] ALU Control
 - [ ] PC
 - [ ] Add unit for the PC
 
