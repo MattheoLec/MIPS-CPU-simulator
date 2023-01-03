@@ -6,7 +6,7 @@
 
 - [ ] Instruction memory
 - [ ] Data memory
-- [ ] Registers
+- [x] Registers
 - [x] ALU
 - [ ] Control
 - [x] ALU Control
