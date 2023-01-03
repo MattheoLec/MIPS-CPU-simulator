@@ -22,8 +22,8 @@ void REGISTERS(bool regWrite, uint8_t readReg1, uint8_t readReg2, uint8_t writeR
     readReg2 &= 0b11111;
     writeReg &= 0b11111;
 
-    // write data but dicard changes to the $zero register (hardwired)
-    if(regWrite && writeReg != 0u){
+    // write data but dicard changes to the $zero/$ra register (hardwired)
+    if(regWrite && writeReg != 0u && writeReg != 31u){
         registers[writeReg] = writeData;
     }
 
