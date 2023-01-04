@@ -1,17 +1,17 @@
-AlignEscapedNewlines: Left
-AllowAllArgumentsOnNextLine: true
-AllowAllParametersOfDeclarationOnNextLine: true
-AlwaysBreakBeforeMultilineStrings: true
-AlwaysBreakTemplateDeclarations: Yes
+# AlignEscapedNewlines: Left
+# AllowAllArgumentsOnNextLine: true
+# AllowAllParametersOfDeclarationOnNextLine: true
+# AlwaysBreakBeforeMultilineStrings: true
+# AlwaysBreakTemplateDeclarations: Yes
 BasedOnStyle: Google
-BinPackArguments: false
-BinPackParameters: false
-BreakConstructorInitializers: BeforeComma
-BreakInheritanceList: BeforeComma
-BreakStringLiterals: true
+# BinPackArguments: false
+# BinPackParameters: false
+# BreakConstructorInitializers: BeforeComma
+# BreakInheritanceList: BeforeComma
+# BreakStringLiterals: true
 FixNamespaceComments: true
 IndentWidth: 4
-# ColumnLimit: 120
+ColumnLimit: 120
 Language: Cpp
 PointerAlignment: Left
 TabWidth: 4

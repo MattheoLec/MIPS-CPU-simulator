@@ -1,43 +1,55 @@
 #include <fstream>
 #include <iostream>
 
-int32_t registers[32] = {0};
+class ProgramCounter {
+   public:
+    ProgramCounter() = default;
+    void action(const uint32_t addrIn, uint32_t& addrOut) { addrOut = addrIn; }
+};
 
-/**
- * @brief Module for the registers ofc xD
- * 
- * @param regWrite Control line for writing to registers. If set to 1, the data provided by writeData 
- * will be stored in the register determined by writeReg. 
- * @param readReg1 5 bit address of the first register to read
- * @param readReg2 5 bit address of the second register to read
- * @param writeReg 5 bit address of the register to write data to
- * @param writeData 32 bit data that should be stored in a register
- * @param readData1 32 bit data that was read from readReg1
- * @param readData2 32 bit data that was read from readReg2
- */
-void REGISTERS(bool regWrite, uint8_t readReg1, uint8_t readReg2, uint8_t writeReg, const int32_t writeData, 
-               int32_t& readData1, int32_t& readData2){
-    // ensure that only 5 bits get used for reg addresses
-    readReg1 &= 0b11111;
-    readReg2 &= 0b11111;
-    writeReg &= 0b11111;
+class Registers {
+   private:
+    int32_t registers[32] = {0};
 
-    // write data but dicard changes to the $zero/$ra register (hardwired)
-    if(regWrite && writeReg != 0u && writeReg != 31u){
-        registers[writeReg] = writeData;
+   public:
+    Registers() = default;
+
+    /**
+     * @brief Module for the registers ofc xD
+     *
+     * @param regWrite Control line for writing to registers. If set to 1, the data provided by writeData
+     * will be stored in the register determined by writeReg.
+     * @param readReg1 5 bit address of the first register to read
+     * @param readReg2 5 bit address of the second register to read
+     * @param writeReg 5 bit address of the register to write data to
+     * @param writeData 32 bit data that should be stored in a register
+     * @param readData1 32 bit data that was read from readReg1
+     * @param readData2 32 bit data that was read from readReg2
+     */
+    void action(bool regWrite, uint8_t readReg1, uint8_t readReg2, uint8_t writeReg, const int32_t writeData,
+                int32_t& readData1, int32_t& readData2) {
+        // ensure that only 5 bits get used for reg addresses
+        readReg1 &= 0b11111;
+        readReg2 &= 0b11111;
+        writeReg &= 0b11111;
+
+        // write data but dicard changes to the $zero/$ra register (hardwired)
+        if (regWrite && writeReg != 0u && writeReg != 31u) {
+            registers[writeReg] = writeData;
+        }
+
+        // read data from registers
+        readData1 = registers[readReg1];
+        readData2 = registers[readReg2];
     }
 
-    // read data from registers
-    readData1 = registers[readReg1];
-    readData2 = registers[readReg2];
-}
-
-void printAllRegisters(){
-    for(int i = 0; i < 32; ++i){
-        std::cout << i << ": " << registers[i] << std::endl;
+    void printAll() {
+        for (int i = 0; i < 32; ++i) {
+            std::cout << i << ": " << registers[i] << std::endl;
+        }
+        std::cout << "-------" << std::endl;
     }
-    std::cout << "-------" << std::endl;
-}
+};
 
 void ALU(u_int64_t input1, u_int64_t input2, u_int8_t ALUControl, u_int64_t &resultALU, u_int64_t &zeroFlag) {
     switch (ALUControl) {
@@ -95,10 +107,11 @@ int main(int argc, char* argv[]) {
     ALU(1,2,2,resultALU,zeroFlag);
     std::cout << resultALU;
     
+    Registers reg = Registers();
     int32_t a,b;
-    printAllRegisters();
-    REGISTERS(1, 0, 0, 1, -42, a, b);
-    printAllRegisters();
-    REGISTERS(0, 1, 2, 0, 0, a, b);
+    reg.printAll();
+    reg.action(1, 0, 0, 1, -42, a, b);
+    reg.printAll();
+    reg.action(0, 1, 2, 0, 0, a, b);
     std::cout << a << "; " << b << std::endl;
 }
