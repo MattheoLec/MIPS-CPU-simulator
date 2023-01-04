@@ -3,12 +3,58 @@
 #include <limits>
 #include <sstream>
 
-int32_t registers[32] = {0};
 int32_t dataMemory[1000] = {0};
 class ProgramCounter {
    public:
     ProgramCounter() = default;
     void action(const uint32_t addrIn, uint32_t& addrOut) { addrOut = addrIn; }
+};
+
+struct Control {
+   private:
+    bool flags[9] = {0};
+
+   public:
+    bool get(const size_t& idx) { return flags[idx]; }
+    enum LineNames { REG_DST, BRANCH, MEM_READ, MEMTO_REG, ALU_OP1, ALU_OP2, MEM_WRITE, ALU_SRC, REG_WRITE };
+
+    /**
+     * @brief Update all control lines according to the provided op-code.
+     * 
+     * @param input 6 bit op-code
+     */
+    void update(uint8_t input) {
+        // ensure that only the first 6 bits are used
+        input &= 0b111111;
+        uint16_t output = 0b0;
+
+        switch (input) {
+            case 0b0:  // R-format
+                output = 0b100100010;
+                break;
+
+            case 0b100011:  // lw
+                output = 0b011110000;
+                break;
+
+            case 101011:  // sw
+                output = 0b010001000;
+                break;
+
+            case 0b000100:  // R-format
+                output = 0b000000101;
+                break;
+
+            default:
+                std::cout << "Error: op-code unknown." << std::endl;
+                break;
+        }
+
+        // set flags depending on the output
+        for (int i = 0; i < 9; ++i) {
+            flags[i] = output & (0b1 << (8 - i));
+        }
+    }
 };
 
 /**
@@ -169,4 +215,10 @@ int main(int argc, char* argv[]) {
     reg.printAll();
     reg.action(0, 1, 2, 0, 0, a, b);
     instructionFile.close();
+
+    Control c;
+    std::cout << c.get(Control::REG_DST) << std::endl;
+    c.update(0b0);
+    std::cout << c.get(Control::REG_DST) << std::endl;
+
 }
