@@ -1,6 +1,10 @@
 #include <fstream>
 #include <iostream>
+#include <limits>
+#include <sstream>
 
+int32_t registers[32] = {0};
+int32_t dataMemory[1000] = {0};
 class ProgramCounter {
    public:
     ProgramCounter() = default;
@@ -70,7 +74,7 @@ class Registers {
     }
 };
 
-void ALU(u_int64_t input1, u_int64_t input2, u_int8_t ALUControl, u_int64_t &resultALU, u_int64_t &zeroFlag) {
+void ALU(uint64_t input1, uint64_t input2, uint8_t ALUControl, uint64_t &resultALU, uint64_t &zeroFlag) {
     switch (ALUControl) {
         case 0b0000: // and
             resultALU = input1 & input2;
@@ -94,7 +98,7 @@ void ALU(u_int64_t input1, u_int64_t input2, u_int8_t ALUControl, u_int64_t &res
     resultALU == 0 ? zeroFlag = 1 : zeroFlag = 0;
 }
 
-void ALUControl(u_int8_t ALUOp, u_int8_t funct, u_int8_t &ALUControl) {
+void ALUControl(uint8_t ALUOp, uint8_t funct, uint8_t &ALUControl) {
     if (ALUOp == 0b10) {
         switch (funct) {
             case 0b0000: // add
@@ -120,17 +124,49 @@ void ALUControl(u_int8_t ALUOp, u_int8_t funct, u_int8_t &ALUControl) {
     }
 }
 
+void DataMemory(uint64_t address, uint64_t writeData, uint8_t memWrite, uint8_t memRead, uint64_t &readData) {
+    if (memWrite == 1) {
+        dataMemory[address] = writeData;
+    } else if (memRead == 1) {
+        readData = dataMemory[address];
+    }
+}
+
+void InstructionMemory(std::fstream &file, uint64_t address, uint64_t &instruction) {
+    file.clear();
+    file.seekg(0);
+    std::string line;
+    if (file.is_open()) {
+        for (int i = 0; i < address; i++) {
+            file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+        getline(file,line);
+    }
+    std::stringstream ss;
+    ss << std::hex << line;
+    ss >> instruction;
+}
+
 int main(int argc, char* argv[]) {
-    std::cout << "Hello World";
-    u_int64_t resultALU, zeroFlag;
+    uint64_t resultALU, zeroFlag, readData, instruction;
+    std::fstream instructionFile, dataFile;
+    instructionFile.open("instructionMemory.txt", std::ios::in);
+    dataFile.open("dataMemory.txt", std::ios::in | std::ios::out);
     ALU(1,2,2,resultALU,zeroFlag);
     std::cout << resultALU;
-    
+
     Registers reg = Registers();
+
+    DataMemory(5,5,1,0,readData);
+    DataMemory(5,4,0,1,readData);
+    std::cout << std::hex << readData << std::endl;
+    InstructionMemory(instructionFile,8,instruction);
+    InstructionMemory(instructionFile,9,instruction);
+
     int32_t a,b;
     reg.printAll();
     reg.action(1, 0, 0, 1, -42, a, b);
     reg.printAll();
     reg.action(0, 1, 2, 0, 0, a, b);
-    std::cout << a << "; " << b << std::endl;
+    instructionFile.close();
 }
