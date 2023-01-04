@@ -2,10 +2,10 @@
 ## Global tasks
 ### CPU units :
 - [ ] Instruction memory
-- [ ] Data memory
+- [x] Data memory
 - [x] Registers
 - [x] ALU
-- [ ] Control
+- [x] Control
 - [x] ALU Control
 - [x] PC
 - [x] Add unit for the PC
