@@ -10,8 +10,8 @@
 - [x] ALU
 - [ ] Control
 - [x] ALU Control
-- [ ] PC
-- [ ] Add unit for the PC
+- [x] PC
+- [x] Add unit for the PC
 
 ### Interface implementation
 
