@@ -7,6 +7,25 @@ class ProgramCounter {
     void action(const uint32_t addrIn, uint32_t& addrOut) { addrOut = addrIn; }
 };
 
+/**
+ * @brief ADD unit for the PC. Including the increase of the PC and the MUX afterwards.
+ *
+ * @param addrIn 32 bit address coming from the PC BEFORE increase it by 4
+ * @param addrOut 32 bit address output
+ * @param addrOffset 32 bit offset AFTER left shift by 2
+ * @param ALUZero zero flag from the ALU unit
+ * @param branch control line flag
+ */
+void PCAdd(uint32_t addrIn, uint32_t& addrOut, const uint32_t addrOffset, const bool ALUZero, const bool branch) {
+    addrIn += 4;  // increment PC
+
+    if (ALUZero && branch) {  // jump
+        addrOut = addrIn + addrOffset;
+    } else {  // use PC
+        addrOut = addrIn;
+    }
+}
+
 class Registers {
    private:
     int32_t registers[32] = {0};
