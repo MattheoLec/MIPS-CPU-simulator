@@ -22,4 +22,6 @@
 ### Additional work :
 
 - [ ] Interface implementation
+- [ ] File input and integration with MIPS assembler (assignment 1)
+- [ ] Testing and integration with the SPIM simulator
 - [ ] User manual
