@@ -20,10 +20,10 @@
 - [ ] Show each instruction of the program
 - [ ] Highlight current instruction
 - [ ] See the detail of the instruction (different fields)
-- [ ] View register values (All those that have been changed since the beginning of the program)
+- [x] View register values (All those that have been changed since the beginning of the program)
 - [ ] Current PC Value
-- [ ] View memory values (All those that have been changed since the beginning of the program)
-- [ ] Ability to choose whether values are displayed in decimal or hexadecimal
+- [x] View memory values (All those that have been changed since the beginning of the program)
+- [x] Ability to choose whether values are displayed in decimal or hexadecimal
 - [ ] Operation Step
 - [ ] Operation Run
 - [ ] Reset
