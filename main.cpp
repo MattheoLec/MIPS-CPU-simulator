@@ -2,12 +2,18 @@
 #include <iostream>
 #include <limits>
 #include <sstream>
+#include <string.h>
 
 int32_t dataMemory[1000] = {0};
 class ProgramCounter {
    public:
     ProgramCounter() = default;
     void action(const uint32_t addrIn, uint32_t& addrOut) { addrOut = addrIn; }
+    void print() {
+        std::cout <<"-------------ProgramCounter--------------" << std::endl;
+        std::cout << "value PC"<<std::endl;
+        std::cout << "----------------------------------------" << std::endl;
+    }
 };
 
 struct Control {
@@ -86,6 +92,7 @@ class Registers {
      * @param writeData 32 bit data that should be stored in a register
      * @param readData1 32 bit data that was read from readReg1
      * @param readData2 32 bit data that was read from readReg2
+     * @param hexa if you want to display in hexadecimal
      */
     void action(bool regWrite, uint8_t readReg1, uint8_t readReg2, uint8_t writeReg, const int32_t writeData,
                 int32_t& readData1, int32_t& readData2) {
@@ -104,11 +111,25 @@ class Registers {
         readData2 = registers[readReg2];
     }
 
-    void printAll() {
+    void printAll(bool hexa) {
+        std::cout << "--------------REGISTER------------------" << std::endl;
+        std::cout << hexa << std::endl;
         for (int i = 0; i < 32; ++i) {
-            std::cout << i << ": " << registers[i] << std::endl;
+            if(registers[i] != 0){
+                std::cout << "r" << i << " -> ";
+                if(hexa){
+                    std::cout <<  std::hex  ;
+                }else{
+                    std::cout << std::dec;
+                }
+                std::cout << registers[i] << " | ";
+                if(i % 5 == 4){
+                    std::cout << "" << std::endl;
+                }
+            }
         }
-        std::cout << "-------" << std::endl;
+        std::cout << std::endl;
+        std::cout << "----------------------------------------" << std::endl;
     }
 };
 
@@ -170,6 +191,26 @@ void DataMemory(uint64_t address, uint64_t writeData, uint8_t memWrite, uint8_t 
     }
 }
 
+void printAllMemory(bool hexa) {
+    std::cout << "--------------MEMORY------------------" << std::endl;
+    for (int i = 0; i < 1000; ++i) {
+        if(dataMemory[i] != 0){
+            std::cout << "m" << i << " -> ";
+            if(hexa){
+                std::cout <<  std::hex  ;
+            }else{
+                std::cout << std::dec;
+            }
+            std::cout << dataMemory[i] << " | ";
+            if(i % 5 == 4){
+                std::cout << "" << std::endl;
+            }
+        }
+    }
+    std::cout << std::endl;
+    std::cout << "----------------------------------------" << std::endl;
+}
+
 void InstructionMemory(std::fstream &file, uint64_t address, uint64_t &instruction) {
     file.clear();
     file.seekg(0);
@@ -184,6 +225,41 @@ void InstructionMemory(std::fstream &file, uint64_t address, uint64_t &instructi
     ss << std::hex << line;
     ss >> instruction;
 }
+void menuInterface(){
+     std::cout << "R. Register values M. Memory values (add h to display in hexadecimal)" << std::endl;
+    std::cout << "PC. Program counter value" << std::endl;
+    std::cout << "S. Step Run. To run the entire program Reset. To reset the program" << std::endl;
+    std::cout << "Q. Quit" << std::endl;
+}
+
+void interface(Registers reg) {
+    char buffer[10];
+    std::cout << "---------------------------------" << std::endl;
+    std::cout << "|           Processor           |" << std::endl;
+    std::cout << "---------------------------------" << std::endl;
+    menuInterface();
+    fflush( stdout );
+    scanf( "%[^\n]", buffer );
+    fgetc( stdin );
+    while (strcmp(buffer, "Q") != 0 && strcmp(buffer, "q") != 0  ){
+        menuInterface();
+        if(strcmp(buffer, "R") == 0 || strcmp(buffer, "r") == 0 ){
+            reg.printAll(false);
+        }else if(strcmp(buffer, "RH") == 0 || strcmp(buffer, "rh") == 0 ){
+            reg.printAll(true);
+        }else if(strcmp(buffer, "M") == 0 || strcmp(buffer, "m") == 0){
+            printAllMemory(false);
+        }else if(strcmp(buffer, "MH") == 0 || strcmp(buffer, "mh") == 0) {
+           printAllMemory(true);
+        }
+        fflush( stdout );
+        scanf( "%[^\n]", buffer );
+        fgetc( stdin );
+    }
+
+    
+
+}
 
 int main(int argc, char* argv[]) {
     uint64_t resultALU, zeroFlag, readData, instruction;
@@ -191,20 +267,24 @@ int main(int argc, char* argv[]) {
     instructionFile.open("instructionMemory.txt", std::ios::in);
     dataFile.open("dataMemory.txt", std::ios::in | std::ios::out);
     ALU(1,2,2,resultALU,zeroFlag);
-    std::cout << resultALU;
+    std::cout << resultALU << std::endl;
 
     Registers reg = Registers();
 
     DataMemory(5,5,1,0,readData);
+    DataMemory(6,15,1,0,readData);
     DataMemory(5,4,0,1,readData);
-    std::cout << std::hex << readData << std::endl;
+    //std::cout << std::hex << readData << std::endl;
+    printAllMemory(false);
+    printAllMemory(true);
     InstructionMemory(instructionFile,8,instruction);
     InstructionMemory(instructionFile,9,instruction);
 
     int32_t a,b;
-    reg.printAll();
+    reg.printAll(false);
     reg.action(1, 0, 0, 1, -42, a, b);
-    reg.printAll();
+    reg.printAll(false);
+    reg.printAll(true);
     reg.action(0, 1, 2, 0, 0, a, b);
     instructionFile.close();
 
@@ -212,5 +292,7 @@ int main(int argc, char* argv[]) {
     std::cout << c.get(Control::REG_DST) << std::endl;
     c.update(0b0);
     std::cout << c.get(Control::REG_DST) << std::endl;
+
+    //interface(reg);
 
 }
