@@ -232,7 +232,7 @@ void menuInterface(){
     std::cout << "Q. Quit" << std::endl;
 }
 
-void interface(Registers reg) {
+void main_interface(Registers reg) {
     char buffer[10];
     std::cout << "---------------------------------" << std::endl;
     std::cout << "|           Processor           |" << std::endl;
@@ -251,6 +251,15 @@ void interface(Registers reg) {
             printAllMemory(false);
         }else if(strcmp(buffer, "MH") == 0 || strcmp(buffer, "mh") == 0) {
            printAllMemory(true);
+        }else if(strcmp(buffer, "PC") == 0 || strcmp(buffer, "pc") == 0) {
+            ProgramCounter pc = ProgramCounter();
+            pc.print();
+        }else if(strcmp(buffer, "S") == 0 || strcmp(buffer, "s") == 0) {
+           // step
+        }else if(strcmp(buffer, "Reset") == 0 || strcmp(buffer, "reset") == 0) {
+           //reset
+        }else if(strcmp(buffer, "Run") == 0 || strcmp(buffer, "run") == 0) {
+           //run
         }
         fflush( stdout );
         scanf( "%[^\n]", buffer );
@@ -293,6 +302,6 @@ int main(int argc, char* argv[]) {
     c.update(0b0);
     std::cout << c.get(Control::REG_DST) << std::endl;
 
-    //interface(reg);
+    //main_interface(reg);
 
 }
