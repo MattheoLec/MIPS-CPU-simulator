@@ -17,16 +17,17 @@
 ---
 ### Interface implementation
 
-- [ ] Show each instruction of the program
-- [ ] Highlight current instruction
-- [ ] See the detail of the instruction (different fields)
+- [x] Show each instruction of the program
+- [x] Highlight current instruction
+- [x] See the detail of the instruction (different fields)
 - [x] View register values (All those that have been changed since the beginning of the program)
 - [ ] Current PC Value
 - [x] View memory values (All those that have been changed since the beginning of the program)
 - [x] Ability to choose whether values are displayed in decimal or hexadecimal
-- [ ] Operation Step
-- [ ] Operation Run
-- [ ] Reset
+- [x] Operation Step
+- [x] Operation Run
+- [x] Reset
+- [ ] Connect the interface with the rest of the programm (initialisation / step / run / reset / f)
 
 ### Additional work :
 

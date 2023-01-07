@@ -12,7 +12,6 @@ class ProgramCounter {
     void print() {
         std::cout <<"-------------ProgramCounter--------------" << std::endl;
         std::cout << "value PC"<<std::endl;
-        std::cout << "----------------------------------------" << std::endl;
     }
 };
 
@@ -113,7 +112,6 @@ class Registers {
 
     void printAll(bool hexa) {
         std::cout << "--------------REGISTER------------------" << std::endl;
-        std::cout << hexa << std::endl;
         for (int i = 0; i < 32; ++i) {
             if(registers[i] != 0){
                 std::cout << "r" << i << " -> ";
@@ -129,7 +127,6 @@ class Registers {
             }
         }
         std::cout << std::endl;
-        std::cout << "----------------------------------------" << std::endl;
     }
 };
 
@@ -208,7 +205,6 @@ void printAllMemory(bool hexa) {
         }
     }
     std::cout << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
 }
 
 void InstructionMemory(std::fstream &file, uint64_t address, uint64_t &instruction) {
@@ -225,24 +221,52 @@ void InstructionMemory(std::fstream &file, uint64_t address, uint64_t &instructi
     ss << std::hex << line;
     ss >> instruction;
 }
-void menuInterface(){
-     std::cout << "R. Register values M. Memory values (add h to display in hexadecimal)" << std::endl;
-    std::cout << "PC. Program counter value" << std::endl;
-    std::cout << "S. Step Run. To run the entire program Reset. To reset the program" << std::endl;
+void menuInterface(bool finish){
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "R. Register values M. Memory values (add h to display in hexadecimal)" << std::endl;
+    std::cout << "PC. Program counter value ";
+    if(!finish){
+        std::cout << "F. Fields of the current instruction" << std::endl;
+        std::cout << "S. Step Run. To run the entire program ";
+    }
+    std::cout << "Reset. To reset the program" << std::endl;
     std::cout << "Q. Quit" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+}
+
+void display_instructions(int * array,int current_index){
+    std::cout << "------------Instruction------------" << std::endl;
+    for(int i=0; i<= (sizeof(array)) ; i++){
+        if(i==current_index){
+            std::cout << "Curent : " << std::dec << array[i] << std::endl;
+        }else{
+            std::cout << std::dec << array[i] << std::endl;
+        }
+    }
+    if(current_index >sizeof(array) ){
+        std::cout << "Current : " << std::endl;
+    }
+    
 }
 
 void main_interface(Registers reg) {
     char buffer[10];
+    int array[]= {1050,1050,1050,1050,11};
+    int current_index=0;
+    bool finish = false;
     std::cout << "---------------------------------" << std::endl;
     std::cout << "|           Processor           |" << std::endl;
     std::cout << "---------------------------------" << std::endl;
-    menuInterface();
+    display_instructions(array,current_index);
+    menuInterface(finish);
     fflush( stdout );
     scanf( "%[^\n]", buffer );
     fgetc( stdin );
+
+
+
     while (strcmp(buffer, "Q") != 0 && strcmp(buffer, "q") != 0  ){
-        menuInterface();
+
         if(strcmp(buffer, "R") == 0 || strcmp(buffer, "r") == 0 ){
             reg.printAll(false);
         }else if(strcmp(buffer, "RH") == 0 || strcmp(buffer, "rh") == 0 ){
@@ -254,20 +278,47 @@ void main_interface(Registers reg) {
         }else if(strcmp(buffer, "PC") == 0 || strcmp(buffer, "pc") == 0) {
             ProgramCounter pc = ProgramCounter();
             pc.print();
-        }else if(strcmp(buffer, "S") == 0 || strcmp(buffer, "s") == 0) {
+        }else if((strcmp(buffer, "S") == 0 || strcmp(buffer, "s") == 0) && !finish ) {
            // step
+           //CallFonctionForTheInstruction
+           //fonction(array[current_index])
+           std::cout << array[current_index] << std::endl;
+           current_index = current_index + 1;
+
+           if( current_index > (sizeof(array)/sizeof(array[0])) -1){
+                finish=true;
+            }
+
         }else if(strcmp(buffer, "Reset") == 0 || strcmp(buffer, "reset") == 0) {
            //reset
-        }else if(strcmp(buffer, "Run") == 0 || strcmp(buffer, "run") == 0) {
-           //run
+           //call reset fonction
+           current_index = 0 ;
+           finish=false;
+        }else if((strcmp(buffer, "Run") == 0 || strcmp(buffer, "run") == 0) && !finish) {
+            //run
+            for(int i=0; i< (sizeof(array)/sizeof(array[0])) ; i++){
+                //CallFonctionForTheInstruction
+                //fonction(array[i])
+                std::cout << "test "<< std::dec <<array[i] << std::endl;
+            }
+            current_index = (sizeof(array)/sizeof(array[0]));
+            finish=true;
+           
+        }else if((strcmp(buffer, "f") == 0 || strcmp(buffer, "F") == 0) && !finish) {
+            //Call format instruction 
+            //fonction(array[current_index])
+            std::cout << "Format " <<array[current_index] << std::endl;
+        }else{
+            std::cout << "Failed operation "<< std::endl;
         }
+
+        display_instructions(array,current_index);
+        menuInterface(finish);
+
         fflush( stdout );
         scanf( "%[^\n]", buffer );
         fgetc( stdin );
     }
-
-    
-
 }
 
 int main(int argc, char* argv[]) {
