@@ -1,7 +1,7 @@
 # MIPS-CPU-simulator
 ## Global tasks
 ### CPU units :
-- [ ] Instruction memory
+- [x] Instruction memory
 - [x] Data memory
 - [x] Registers
 - [x] ALU
