@@ -9,10 +9,14 @@ class ProgramCounter {
    public:
     ProgramCounter() = default;
     void action(const uint32_t addrIn, uint32_t& addrOut) { addrOut = addrIn; }
+    const uint32_t get() const {return program_counter;};
     void print() {
         std::cout <<"-------------ProgramCounter--------------" << std::endl;
         std::cout << "value PC"<<std::endl;
     }
+
+  private:
+    uint32_t program_counter = 0;
 };
 
 struct Control {
@@ -130,7 +134,7 @@ class Registers {
     }
 };
 
-void ALU(uint64_t input1, uint64_t input2, uint8_t ALUControl, uint64_t &resultALU, uint64_t &zeroFlag) {
+void ALU(int32_t input1, int32_t input2, uint8_t ALUControl, int32_t &resultALU, bool &zeroFlag) {
     switch (ALUControl) {
         case 0b0000: // and
             resultALU = input1 & input2;
@@ -180,7 +184,7 @@ void ALUControl(uint8_t ALUOp, uint8_t funct, uint8_t &ALUControl) {
     }
 }
 
-void DataMemory(uint64_t address, uint64_t writeData, uint8_t memWrite, uint8_t memRead, uint64_t &readData) {
+void DataMemory(int32_t address, int32_t writeData, bool memWrite, bool memRead, int32_t &readData) {
     if (memWrite == 1) {
         dataMemory[address] = writeData;
     } else if (memRead == 1) {
@@ -321,38 +325,52 @@ void main_interface(Registers reg) {
     }
 }
 
+void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter& pc){
+    // 1. Fetch instruction
+    int8_t op_code = instruction >> 26;
+    int8_t arg1 = (instruction >> 21) & 0b11111;
+    int8_t arg2 = (instruction >> 16) & 0b11111;
+    int8_t arg3 = (instruction >> 11) & 0b11111;
+    int16_t arg4 = instruction & 65535; // first 16 bits
+    uint32_t pc_next = pc.get() + 4; // PC + 4
+    c.update(op_code); // Control Unit
+    int32_t arg4_32 = int32_t(arg4); // sign extended
+
+    // 2. registers
+    int8_t write_reg = c.get(Control::REG_DST) ? arg3 : arg2; // mux
+    int32_t read_data1, read_data2; // result
+    reg.action(c.get(Control::REG_WRITE), arg1, arg2, write_reg, 0, read_data1, read_data2);
+
+    // 3. ALU
+    int32_t alu_input1 = read_data1;
+    int32_t alu_input2 = c.get(Control::ALU_SRC) ? arg4_32 : read_data2; // MUX
+    int8_t alu_op = c.get(Control::ALU_OP1) && c.get(Control::ALU_OP2);
+    uint8_t alu_control; // result
+    int32_t alu_result; // result
+    bool alu_zero; // result
+    ALUControl(alu_op, arg4 & 0b111111, alu_control);
+    ALU(alu_input1, alu_input2, alu_control, alu_result, alu_zero);
+
+    // 4. Data access
+    int32_t da_read_data; // result
+    DataMemory(alu_result, read_data2, c.get(Control::MEM_WRITE), c.get(Control::MEM_READ), da_read_data);
+
+    // 5. Write back
+    int32_t write_data = c.get(Control::MEMTO_REG) ? da_read_data : alu_result; // MUX
+    reg.action(c.get(Control::REG_WRITE), arg1, arg2, write_reg, write_data, read_data1, read_data2);
+
+    // 6. PC
+    uint32_t pc_add_result;
+    PCAdd(pc_next, pc_add_result, arg4_32 << 2);
+    pc_add_result = c.get(Control::BRANCH) && alu_zero ? pc_add_result : pc_next; // MUX
+    pc.action(pc_add_result, pc_next);
+}
+
 int main(int argc, char* argv[]) {
-    uint64_t resultALU, zeroFlag, readData, instruction;
-    std::fstream instructionFile, dataFile;
-    instructionFile.open("instructionMemory.txt", std::ios::in);
-    dataFile.open("dataMemory.txt", std::ios::in | std::ios::out);
-    ALU(1,2,2,resultALU,zeroFlag);
-    std::cout << resultALU << std::endl;
-
-    Registers reg = Registers();
-
-    DataMemory(5,5,1,0,readData);
-    DataMemory(6,15,1,0,readData);
-    DataMemory(5,4,0,1,readData);
-    //std::cout << std::hex << readData << std::endl;
-    printAllMemory(false);
-    printAllMemory(true);
-    InstructionMemory(instructionFile,8,instruction);
-    InstructionMemory(instructionFile,9,instruction);
-
-    int32_t a,b;
-    reg.printAll(false);
-    reg.action(1, 0, 0, 1, -42, a, b);
-    reg.printAll(false);
-    reg.printAll(true);
-    reg.action(0, 1, 2, 0, 0, a, b);
-    instructionFile.close();
-
     Control c;
-    std::cout << c.get(Control::REG_DST) << std::endl;
-    c.update(0b0);
-    std::cout << c.get(Control::REG_DST) << std::endl;
+    ProgramCounter pc;
+    Registers reg;
 
-    //main_interface(reg);
-
+    int32_t instruction =  0x1180fffb;
+    step(instruction, reg, c, pc);
 }
