@@ -1,10 +1,12 @@
 #include <fstream>
 #include <iostream>
-#include <limits>
 #include <sstream>
+#include <vector>
 #include <string.h>
 
 int32_t dataMemory[1000] = {0};
+std::vector<uint32_t> instructionMemory;
+
 class ProgramCounter {
    public:
     ProgramCounter() = default;
@@ -25,7 +27,7 @@ struct Control {
 
     /**
      * @brief Update all control lines according to the provided op-code.
-     * 
+     *
      * @param input 6 bit op-code
      */
     void update(uint8_t input) {
@@ -207,19 +209,24 @@ void printAllMemory(bool hexa) {
     std::cout << std::endl;
 }
 
-void InstructionMemory(std::fstream &file, uint64_t address, uint64_t &instruction) {
-    file.clear();
-    file.seekg(0);
+void InstructionMemory(uint64_t address, uint64_t &instruction) {
+    instruction = instructionMemory[address];
+}
+
+void Initialize() {
+    std::fstream instructionFile;
+    instructionFile.open("instructionMemory.txt", std::ios::in);
     std::string line;
-    if (file.is_open()) {
-        for (int i = 0; i < address; i++) {
-            file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    uint64_t instruction;
+    if (instructionFile.is_open()) {
+        while(getline(instructionFile, line)){
+            std::stringstream ss;
+            ss << std::hex << line;
+            ss >> instruction;
+            instructionMemory.push_back(instruction);
         }
-        getline(file,line);
     }
-    std::stringstream ss;
-    ss << std::hex << line;
-    ss >> instruction;
+    instructionFile.close();
 }
 void menuInterface(bool finish){
     std::cout << "-----------------------------" << std::endl;
@@ -246,7 +253,7 @@ void display_instructions(int * array,int current_index){
     if(current_index >sizeof(array) ){
         std::cout << "Current : " << std::endl;
     }
-    
+
 }
 
 void main_interface(Registers reg) {
@@ -303,9 +310,9 @@ void main_interface(Registers reg) {
             }
             current_index = (sizeof(array)/sizeof(array[0]));
             finish=true;
-           
+
         }else if((strcmp(buffer, "f") == 0 || strcmp(buffer, "F") == 0) && !finish) {
-            //Call format instruction 
+            //Call format instruction
             //fonction(array[current_index])
             std::cout << "Format " <<array[current_index] << std::endl;
         }else{
@@ -323,9 +330,10 @@ void main_interface(Registers reg) {
 
 int main(int argc, char* argv[]) {
     uint64_t resultALU, zeroFlag, readData, instruction;
-    std::fstream instructionFile, dataFile;
-    instructionFile.open("instructionMemory.txt", std::ios::in);
-    dataFile.open("dataMemory.txt", std::ios::in | std::ios::out);
+    Initialize();
+    InstructionMemory(0, instruction);
+    std::cout << std::hex << instruction << std::endl;
+
     ALU(1,2,2,resultALU,zeroFlag);
     std::cout << resultALU << std::endl;
 
@@ -337,8 +345,6 @@ int main(int argc, char* argv[]) {
     //std::cout << std::hex << readData << std::endl;
     printAllMemory(false);
     printAllMemory(true);
-    InstructionMemory(instructionFile,8,instruction);
-    InstructionMemory(instructionFile,9,instruction);
 
     int32_t a,b;
     reg.printAll(false);
@@ -346,7 +352,6 @@ int main(int argc, char* argv[]) {
     reg.printAll(false);
     reg.printAll(true);
     reg.action(0, 1, 2, 0, 0, a, b);
-    instructionFile.close();
 
     Control c;
     std::cout << c.get(Control::REG_DST) << std::endl;
