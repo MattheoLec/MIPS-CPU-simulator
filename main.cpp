@@ -253,7 +253,7 @@ void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter
     // 3. ALU
     int32_t alu_input1 = read_data1;
     int32_t alu_input2 = c.get(Control::ALU_SRC) ? arg4_32 : read_data2; // MUX
-    int8_t alu_op = c.get(Control::ALU_OP1) && c.get(Control::ALU_OP2);
+    int8_t alu_op = (c.get(Control::ALU_OP2) << 1)  | c.get(Control::ALU_OP1);
     uint8_t alu_control; // result
     int32_t alu_result; // result
     bool alu_zero; // result
