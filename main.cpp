@@ -58,6 +58,10 @@ struct Control {
                 output = 0b000000101;
                 break;
 
+            case 0b001000:  // addi
+                output = 0b010100010;
+                break;
+
             default:
                 std::cout << "Error: op-code unknown." << std::endl;
                 break;
