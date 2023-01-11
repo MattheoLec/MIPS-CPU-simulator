@@ -263,48 +263,49 @@ void reset(ProgramCounter &pc, Registers &reg) {
 void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter& pc){
     // 0. exit?
     if(instruction == 0xffffffff){ // 32 bit only 1's
-        std::exit(0);
+        std::cout << " EXIT " << std::endl;
+        finish = true;
+//        std::exit(0);
+    } else {
+        // 1. Fetch instruction
+        uint8_t op_code = instruction >> 26;
+        uint8_t arg1 = (instruction >> 21) & 0b11111;
+        uint8_t arg2 = (instruction >> 16) & 0b11111;
+        uint8_t arg3 = (instruction >> 11) & 0b11111;
+        int16_t arg4 = instruction & 65535; // first 16 bits
+        uint32_t pc_next = pc.get() + 4; // PC + 4
+        c.update(op_code); // Control Unit
+        int32_t arg4_32 = int32_t(arg4); // sign extended
+
+        // 2. registers
+        uint8_t write_reg = c.get(Control::REG_DST) ? arg3 : arg2; // mux
+        int32_t read_data1, read_data2; // result
+        reg.action(false, arg1, arg2, write_reg, 0, read_data1, read_data2);
+
+        // 3. ALU
+        int32_t alu_input1 = read_data1;
+        int32_t alu_input2 = c.get(Control::ALU_SRC) ? arg4_32 : read_data2; // MUX
+        int8_t alu_op = (c.get(Control::ALU_OP1) << 1)  | c.get(Control::ALU_OP2);
+        uint8_t alu_control; // result
+        int32_t alu_result; // result
+        bool alu_zero; // result
+        ALUControl(alu_op, arg4 & 0b111111, alu_control);
+        ALU(alu_input1, alu_input2, alu_control, alu_result, alu_zero);
+
+        // 4. Data access
+        int32_t da_read_data; // result
+        DataMemory(alu_result, read_data2, c.get(Control::MEM_WRITE), c.get(Control::MEM_READ), da_read_data);
+
+        // 5. Write back
+        int32_t write_data = c.get(Control::MEMTO_REG) ? da_read_data : alu_result; // MUX
+        reg.action(c.get(Control::REG_WRITE), arg1, arg2, write_reg, write_data, read_data1, read_data2);
+
+        // 6. PC
+        uint32_t pc_add_result;
+        PCAdd(pc_next, pc_add_result, arg4_32 << 2);
+        pc_add_result = c.get(Control::BRANCH) && alu_zero ? pc_add_result : pc_next; // MUX
+        pc.action(pc_add_result, pc_next);
     }
-
-    // 1. Fetch instruction
-    uint8_t op_code = instruction >> 26;
-    uint8_t arg1 = (instruction >> 21) & 0b11111;
-    uint8_t arg2 = (instruction >> 16) & 0b11111;
-    uint8_t arg3 = (instruction >> 11) & 0b11111;
-    int16_t arg4 = instruction & 65535; // first 16 bits
-    uint32_t pc_next = pc.get() + 4; // PC + 4
-    c.update(op_code); // Control Unit
-    int32_t arg4_32 = int32_t(arg4); // sign extended
-
-    // 2. registers
-    uint8_t write_reg = c.get(Control::REG_DST) ? arg3 : arg2; // mux
-    int32_t read_data1, read_data2; // result
-    reg.action(false, arg1, arg2, write_reg, 0, read_data1, read_data2);
-
-    // 3. ALU
-    int32_t alu_input1 = read_data1;
-    int32_t alu_input2 = c.get(Control::ALU_SRC) ? arg4_32 : read_data2; // MUX
-    int8_t alu_op = (c.get(Control::ALU_OP1) << 1)  | c.get(Control::ALU_OP2);
-    uint8_t alu_control; // result
-    int32_t alu_result; // result
-    bool alu_zero; // result
-    ALUControl(alu_op, arg4 & 0b111111, alu_control);
-    ALU(alu_input1, alu_input2, alu_control, alu_result, alu_zero);
-
-    // 4. Data access
-    int32_t da_read_data; // result
-    DataMemory(alu_result, read_data2, c.get(Control::MEM_WRITE), c.get(Control::MEM_READ), da_read_data);
-
-    // 5. Write back
-    int32_t write_data = c.get(Control::MEMTO_REG) ? da_read_data : alu_result; // MUX
-    reg.action(c.get(Control::REG_WRITE), arg1, arg2, write_reg, write_data, read_data1, read_data2);
-
-    // 6. PC
-    uint32_t pc_add_result;
-    PCAdd(pc_next, pc_add_result, arg4_32 << 2);
-    pc_add_result = c.get(Control::BRANCH) && alu_zero ? pc_add_result : pc_next; // MUX
-    pc.action(pc_add_result, pc_next);
-
 }
 
 void menuInterface(){
