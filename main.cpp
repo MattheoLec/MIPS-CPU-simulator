@@ -49,7 +49,7 @@ struct Control {
                 output = 0b011110000;
                 break;
 
-            case 101011:  // sw
+            case 0b101011:  // sw
                 output = 0b010001000;
                 break;
 
