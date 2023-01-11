@@ -230,7 +230,7 @@ void InstructionMemory(uint32_t address, uint32_t &instruction) {
 
 void Initialize() {
     std::fstream instructionFile;
-    instructionFile.open("../instructionMemory.txt", std::ios::in);
+    instructionFile.open("instructionMemory.txt", std::ios::in);
     std::string line;
     uint64_t instruction;
     if (instructionFile.is_open()) {
@@ -331,20 +331,34 @@ void display_format( ){
     std::cout << "------------FORMAT------------" << std::endl;
     for(unsigned int i : instructionMemory){
         uint32_t op_code = (i >> 26) & 0b111111;
-        std::cout << "Op code : " << std::dec <<  op_code << std::endl;
         if (op_code == 0b000000) { //R-format
-            uint32_t func = (i >> 6) & 0b111111;
-            std::cout << "func : " << func << std::endl;
+            uint32_t rs = (i >> 21) & 0x1F;
+            uint32_t rt = (i >> 16) & 0x1F;
+            uint32_t rd = (i >> 11) & 0x1F;
+            uint32_t shamt = (i >> 6) & 0x1F;
+            uint32_t funct = i & 0b111111;
+            std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')<<i 
+            << " -----> Op : " << std::dec << op_code  
+            << " | rs : " << std::dec << rs 
+            << " | rt : " << std::dec << rt 
+            << " | rd : " << std::dec << rd 
+            << " | shamt : " << std::dec << shamt 
+            << " | funct : " << std::dec << funct << std::endl;
         } else if (op_code == 0b000010) { //J-format
-
-        } else { // I-format
-
+            uint32_t wordadress = i & ((1 << 26) - 1);
+            std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')<<i
+             << " -----> Op : " << std::dec << op_code  
+             << " | word adress : " << std::dec << wordadress << std::endl;
+         } else { // I-format
+            uint32_t rs = (i >> 21) & 0x1F ;
+            uint32_t rt = (i >> 16) & 0x1F;
+            uint32_t immediate = i & 65535; // first 16 bits
+            std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')<<i 
+            << " -----> Op : " << std::dec << op_code  
+            << " | rs : " << std::dec << rs 
+            << " | rt : " << std::dec << rt 
+            << " | imm : " << std::dec << immediate << std::endl;
         }
-        uint32_t arg1 = (i >> 21) & 0b11111;
-        uint32_t arg2 = (i >> 16) & 0b11111;
-        uint32_t arg3 = (i >> 11) & 0b11111;
-        uint32_t arg4 = i & 65535; // first 16 bits
-        std::cout << std::hex << i << std::endl;
     }
 }
 
