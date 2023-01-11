@@ -229,8 +229,9 @@ void InstructionMemory(uint32_t address, uint32_t &instruction) {
 }
 
 void Initialize() {
+    std::system("./assignment1 input.txt files/output_listing.txt files/output_instructions.txt");
     std::fstream instructionFile;
-    instructionFile.open("instructionMemory.txt", std::ios::in);
+    instructionFile.open("files/output_instructions.txt", std::ios::in);
     std::string line;
     uint64_t instruction;
     if (instructionFile.is_open()) {
@@ -255,6 +256,11 @@ void reset(ProgramCounter &pc, Registers &reg) {
 }
 
 void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter& pc){
+    // 0. exit?
+    if(instruction == 0xffffffff){ // 32 bit only 1's
+        std::exit(0);
+    }
+
     // 1. Fetch instruction
     uint8_t op_code = instruction >> 26;
     uint8_t arg1 = (instruction >> 21) & 0b11111;
