@@ -236,8 +236,7 @@ void Initialize() {
 
 void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter& pc){
     // 1. Fetch instruction
-    int8_t op_code = instruction >> 26;
-    std::cout << "opcode : " << (int)op_code << std::endl;
+    uint8_t op_code = instruction >> 26;
     int8_t arg1 = (instruction >> 21) & 0b11111;
     int8_t arg2 = (instruction >> 16) & 0b11111;
     int8_t arg3 = (instruction >> 11) & 0b11111;
@@ -295,14 +294,15 @@ void menuInterface(){
 void display_instructions(ProgramCounter pc){
     std::cout << "------------Instruction------------" << std::endl;
     for(int i=0; i< instructionMemory.size() ; i++){
+        std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0');
         if((pc.get()/4)==i){
-            std::cout << "Current : " << std::hex << instructionMemory[i] << std::endl;
+            std::cout << instructionMemory[i] << " <--" << std::endl;
         }else{
-            std::cout << std::hex << instructionMemory[i] << std::endl;
+            std::cout << instructionMemory[i] << std::endl;
         }
     }
-    if(pc.get() >instructionMemory.size() ){
-        std::cout << "Current : " << std::endl;
+    if(pc.get()/4 > instructionMemory.size() ){
+        std::cout << "<--" << std::endl;
     }
 
 }
@@ -310,8 +310,8 @@ void display_instructions(ProgramCounter pc){
 void display_format( ){
     std::cout << "------------FORMAT------------" << std::endl;
     for(unsigned int i : instructionMemory){
-        uint32_t op_code = i >> 26;
-        std::cout << "Op code : " << std::hex <<  op_code << std::endl;
+        uint32_t op_code = (i >> 26) & 0b111111;
+        std::cout << "Op code : " << std::dec <<  op_code << std::endl;
         if (op_code == 0b000000) { //R-format
             uint32_t func = (i >> 6) & 0b111111;
             std::cout << "func : " << func << std::endl;
