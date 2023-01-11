@@ -28,7 +28,7 @@ struct Control {
 
    public:
     bool get(const size_t& idx) { return flags[idx]; }
-    enum LineNames { REG_DST, BRANCH, MEM_READ, MEMTO_REG, ALU_OP1, ALU_OP2, MEM_WRITE, ALU_SRC, REG_WRITE };
+    enum LineNames { REG_DST, ALU_SRC, MEMTO_REG, REG_WRITE, MEM_READ, MEM_WRITE, BRANCH, ALU_OP1, ALU_OP2 };
 
     /**
      * @brief Update all control lines according to the provided op-code.
@@ -53,7 +53,7 @@ struct Control {
                 output = 0b010001000;
                 break;
 
-            case 0b000100:  // R-format
+            case 0b000100:  // beq
                 output = 0b000000101;
                 break;
 
@@ -187,7 +187,7 @@ void ALUControl(uint8_t ALUOp, uint8_t funct, uint8_t &ALUControl) {
     }
 }
 
-void DataMemory(int32_t address, int32_t writeData, bool memWrite, bool memRead, int32_t &readData) {
+void DataMemory(const int32_t address, int32_t writeData, bool memWrite, bool memRead, int32_t &readData) {
     if (memWrite == 1) {
         dataMemory[address] = writeData;
     } else if (memRead == 1) {
@@ -237,18 +237,18 @@ void Initialize() {
 void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter& pc){
     // 1. Fetch instruction
     uint8_t op_code = instruction >> 26;
-    int8_t arg1 = (instruction >> 21) & 0b11111;
-    int8_t arg2 = (instruction >> 16) & 0b11111;
-    int8_t arg3 = (instruction >> 11) & 0b11111;
+    uint8_t arg1 = (instruction >> 21) & 0b11111;
+    uint8_t arg2 = (instruction >> 16) & 0b11111;
+    uint8_t arg3 = (instruction >> 11) & 0b11111;
     int16_t arg4 = instruction & 65535; // first 16 bits
     uint32_t pc_next = pc.get() + 4; // PC + 4
     c.update(op_code); // Control Unit
     int32_t arg4_32 = int32_t(arg4); // sign extended
 
     // 2. registers
-    int8_t write_reg = c.get(Control::REG_DST) ? arg3 : arg2; // mux
+    uint8_t write_reg = c.get(Control::REG_DST) ? arg3 : arg2; // mux
     int32_t read_data1, read_data2; // result
-    reg.action(c.get(Control::REG_WRITE), arg1, arg2, write_reg, 0, read_data1, read_data2);
+    reg.action(false, arg1, arg2, write_reg, 0, read_data1, read_data2);
 
     // 3. ALU
     int32_t alu_input1 = read_data1;
@@ -328,7 +328,7 @@ void display_format( ){
     }
 }
 
-void main_interface(Registers reg, ProgramCounter pc, Control c) {
+void main_interface(Registers& reg, ProgramCounter& pc, Control& c) {
     char buffer[10];
     std::cout << "---------------------------------" << std::endl;
     std::cout << "|           Processor           |" << std::endl;
@@ -356,7 +356,7 @@ void main_interface(Registers reg, ProgramCounter pc, Control c) {
         }else if((strcmp(buffer, "S") == 0 || strcmp(buffer, "s") == 0) && !finish ) {
            // step
             uint32_t instruction;
-            InstructionMemory(pc.get()/ 4, instruction);
+            InstructionMemory(pc.get() / 4, instruction);
             step(instruction, reg, c, pc);
         }else if(strcmp(buffer, "Reset") == 0 || strcmp(buffer, "reset") == 0) {
            //reset
@@ -385,9 +385,9 @@ void main_interface(Registers reg, ProgramCounter pc, Control c) {
 }
 
 int main(int argc, char* argv[]) {
-    Control c;
-    ProgramCounter pc;
-    Registers reg;
+    Control c = Control();
+    ProgramCounter pc = ProgramCounter();
+    Registers reg = Registers();
     Initialize();
     main_interface(reg,pc,c);
 }
