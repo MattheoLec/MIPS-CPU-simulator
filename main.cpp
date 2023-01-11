@@ -164,25 +164,28 @@ void ALU(int32_t input1, int32_t input2, uint8_t ALUControl, int32_t &resultALU,
 void ALUControl(uint8_t ALUOp, uint8_t funct, uint8_t &ALUControl) {
     if (ALUOp == 0b10) {
         switch (funct) {
-            case 0b0000: // add
+            case 0b100000: // add
                 ALUControl = 0b0010;
                 break;
-            case 0b0010: // sub
+            case 0b100010: // sub
                 ALUControl = 0b0110;
                 break;
-            case 0b0100: // and
+            case 0b100100: // and
                 ALUControl = 0b0000;
                 break;
-            case 0b0101: // or
+            case 0b100101: // or
                 ALUControl = 0b0001;
                 break;
-            case 0b1010: // slt
+            case 0b101010: // slt
                 ALUControl = 0b0111;
                 break;
+            case 0b100111: // nor
+                ALUControl = 0b1100;
+                break;
         }
-    } else if (ALUOp == 0b00) {
+    } else if (ALUOp == 0b00) { // lw sw
         ALUControl = 0b0010;
-    } else if (ALUOp == 0b01) {
+    } else if (ALUOp == 0b01) { // beq
         ALUControl = 0b0110;
     }
 }
@@ -253,7 +256,7 @@ void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter
     // 3. ALU
     int32_t alu_input1 = read_data1;
     int32_t alu_input2 = c.get(Control::ALU_SRC) ? arg4_32 : read_data2; // MUX
-    int8_t alu_op = (c.get(Control::ALU_OP2) << 1)  | c.get(Control::ALU_OP1);
+    int8_t alu_op = (c.get(Control::ALU_OP1) << 1)  | c.get(Control::ALU_OP2);
     uint8_t alu_control; // result
     int32_t alu_result; // result
     bool alu_zero; // result
