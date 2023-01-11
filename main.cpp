@@ -117,6 +117,12 @@ class Registers {
         readData2 = registers[readReg2];
     }
 
+    void reset() {
+        for (int & i : registers){
+            i = 0;
+        }
+    }
+
     void printAll(bool hexa) {
         std::cout << "--------------REGISTER------------------" << std::endl;
         for (int i = 0; i < 32; ++i) {
@@ -232,6 +238,16 @@ void Initialize() {
         }
     }
     instructionFile.close();
+}
+
+void reset(ProgramCounter &pc, Registers &reg) {
+    uint32_t address;
+    pc.action(0,address);
+    reg.reset();
+    for (int & i : dataMemory) {
+        i = 0;
+    }
+    finish = false;
 }
 
 void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter& pc){
