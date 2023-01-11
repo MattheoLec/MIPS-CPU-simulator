@@ -3,6 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <string.h>
+#include <iomanip>
 
 int32_t dataMemory[1000] = {0};
 std::vector<uint32_t> instructionMemory;
@@ -384,7 +385,7 @@ void main_interface(Registers& reg, ProgramCounter& pc, Control& c) {
             step(instruction, reg, c, pc);
         }else if(strcmp(buffer, "Reset") == 0 || strcmp(buffer, "reset") == 0) {
            //reset
-           //call reset fonction
+           reset(pc,reg);
         }else if((strcmp(buffer, "Run") == 0 || strcmp(buffer, "run") == 0) && !finish) {
             while (!finish) {
                 uint32_t instruction;
