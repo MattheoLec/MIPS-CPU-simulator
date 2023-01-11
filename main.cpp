@@ -214,7 +214,7 @@ void printAllMemory(bool hexa) {
     std::cout << std::endl;
 }
 
-void InstructionMemory(uint64_t address, uint64_t &instruction) {
+void InstructionMemory(uint32_t address, uint32_t &instruction) {
     instruction = instructionMemory[address];
 }
 
@@ -355,16 +355,16 @@ void main_interface(Registers reg, ProgramCounter pc, Control c) {
             pc.print();
         }else if((strcmp(buffer, "S") == 0 || strcmp(buffer, "s") == 0) && !finish ) {
            // step
-            auto instruction = (int32_t)instructionMemory[pc.get()/4];
+            uint32_t instruction;
+            InstructionMemory(pc.get()/ 4, instruction);
             step(instruction, reg, c, pc);
-
-
         }else if(strcmp(buffer, "Reset") == 0 || strcmp(buffer, "reset") == 0) {
            //reset
            //call reset fonction
         }else if((strcmp(buffer, "Run") == 0 || strcmp(buffer, "run") == 0) && !finish) {
             while (!finish) {
-                auto instruction = (int32_t)instructionMemory[pc.get()/4];
+                uint32_t instruction;
+                InstructionMemory(pc.get()/ 4, instruction);
                 std::cout << instruction << std::endl;
                 step(instruction, reg, c, pc);
             }
