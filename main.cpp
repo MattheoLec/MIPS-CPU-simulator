@@ -234,13 +234,13 @@ void InstructionMemory(uint32_t address, uint32_t &instruction) {
 
 void Initialize(std::string inputFile) {
     std::stringstream ss;
-    ss << "./assignment1 " << inputFile << " files/output_listing.txt files/output_instructions.txt";
+    ss << "./external/mips-assembler " << inputFile << " ../files/output_listing.txt ../files/output_instructions.txt";
     const std::string tmp = ss.str();
     const char* s = tmp.c_str();
     std::cout << s << std::endl;
     std::system(s);
     std::fstream instructionFile;
-    instructionFile.open("files/output_instructions.txt", std::ios::in);
+    instructionFile.open("../files/output_instructions.txt", std::ios::in);
     std::string line;
     uint64_t instruction;
     if (instructionFile.is_open()) {
