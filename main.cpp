@@ -228,8 +228,13 @@ void InstructionMemory(uint32_t address, uint32_t &instruction) {
     instruction = instructionMemory[address];
 }
 
-void Initialize() {
-    std::system("./assignment1 input.txt files/output_listing.txt files/output_instructions.txt");
+void Initialize(std::string inputFile) {
+    std::stringstream ss;
+    ss << "./assignment1 " << inputFile << " files/output_listing.txt files/output_instructions.txt";
+    const std::string tmp = ss.str();
+    const char* s = tmp.c_str();
+    std::cout << s << std::endl;
+    std::system(s);
     std::fstream instructionFile;
     instructionFile.open("files/output_instructions.txt", std::ios::in);
     std::string line;
@@ -411,9 +416,14 @@ void main_interface(Registers& reg, ProgramCounter& pc, Control& c) {
 }
 
 int main(int argc, char* argv[]) {
+    // call like "./executable input_file"
+    if(argc != 2){
+        return 1;
+    }
+
     Control c = Control();
     ProgramCounter pc = ProgramCounter();
     Registers reg = Registers();
-    Initialize();
+    Initialize(argv[1]);
     main_interface(reg,pc,c);
 }
