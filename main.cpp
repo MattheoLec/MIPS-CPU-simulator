@@ -230,7 +230,7 @@ void InstructionMemory(uint32_t address, uint32_t &instruction) {
 
 void Initialize() {
     std::fstream instructionFile;
-    instructionFile.open("../instructionMemory.txt", std::ios::in);
+    instructionFile.open("instructionMemory.txt", std::ios::in);
     std::string line;
     uint64_t instruction;
     if (instructionFile.is_open()) {
