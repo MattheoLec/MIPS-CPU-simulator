@@ -11,7 +11,7 @@ bool finish = false;
 class ProgramCounter {
    public:
     ProgramCounter() = default;
-    void action(const uint32_t addrIn, uint32_t& addrOut) { addrOut = addrIn; }
+    void action(const uint32_t addrIn, uint32_t& addrOut) { addrOut = addrIn; program_counter = addrOut;}
     const uint32_t get() const {return program_counter;};
     void print() {
         std::cout <<"-------------ProgramCounter--------------" << std::endl;
@@ -237,6 +237,7 @@ void Initialize() {
 void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter& pc){
     // 1. Fetch instruction
     int8_t op_code = instruction >> 26;
+    std::cout << "opcode : " << (int)op_code << std::endl;
     int8_t arg1 = (instruction >> 21) & 0b11111;
     int8_t arg2 = (instruction >> 16) & 0b11111;
     int8_t arg3 = (instruction >> 11) & 0b11111;
@@ -294,7 +295,7 @@ void menuInterface(){
 void display_instructions(ProgramCounter pc){
     std::cout << "------------Instruction------------" << std::endl;
     for(int i=0; i< instructionMemory.size() ; i++){
-        if(pc.get()==i){
+        if((pc.get()/4)==i){
             std::cout << "Current : " << std::hex << instructionMemory[i] << std::endl;
         }else{
             std::cout << std::hex << instructionMemory[i] << std::endl;
@@ -308,9 +309,22 @@ void display_instructions(ProgramCounter pc){
 
 void display_format( ){
     std::cout << "------------FORMAT------------" << std::endl;
-    for(int i=0; i< instructionMemory.size() ; i++){
-        //Display format
-        std::cout << std::hex << instructionMemory[i] << std::endl;
+    for(unsigned int i : instructionMemory){
+        uint32_t op_code = i >> 26;
+        std::cout << "Op code : " << std::hex <<  op_code << std::endl;
+        if (op_code == 0b000000) { //R-format
+            uint32_t func = (i >> 6) & 0b111111;
+            std::cout << "func : " << func << std::endl;
+        } else if (op_code == 0b000010) { //J-format
+
+        } else { // I-format
+
+        }
+        uint32_t arg1 = (i >> 21) & 0b11111;
+        uint32_t arg2 = (i >> 16) & 0b11111;
+        uint32_t arg3 = (i >> 11) & 0b11111;
+        uint32_t arg4 = i & 65535; // first 16 bits
+        std::cout << std::hex << i << std::endl;
     }
 }
 
@@ -341,7 +355,7 @@ void main_interface(Registers reg, ProgramCounter pc, Control c) {
             pc.print();
         }else if((strcmp(buffer, "S") == 0 || strcmp(buffer, "s") == 0) && !finish ) {
            // step
-            auto instruction = (int32_t)instructionMemory[pc.get()];
+            auto instruction = (int32_t)instructionMemory[pc.get()/4];
             step(instruction, reg, c, pc);
 
 
@@ -350,7 +364,7 @@ void main_interface(Registers reg, ProgramCounter pc, Control c) {
            //call reset fonction
         }else if((strcmp(buffer, "Run") == 0 || strcmp(buffer, "run") == 0) && !finish) {
             while (!finish) {
-                auto instruction = (int32_t)instructionMemory[pc.get()];
+                auto instruction = (int32_t)instructionMemory[pc.get()/4];
                 std::cout << instruction << std::endl;
                 step(instruction, reg, c, pc);
             }
@@ -376,7 +390,4 @@ int main(int argc, char* argv[]) {
     Registers reg;
     Initialize();
     main_interface(reg,pc,c);
-
-//
-
 }
