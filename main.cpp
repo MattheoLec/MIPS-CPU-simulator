@@ -230,7 +230,7 @@ void InstructionMemory(uint32_t address, uint32_t &instruction) {
 
 void Initialize() {
     std::fstream instructionFile;
-    instructionFile.open("instructionMemory.txt", std::ios::in);
+    instructionFile.open("../instructionMemory.txt", std::ios::in);
     std::string line;
     uint64_t instruction;
     if (instructionFile.is_open()) {
@@ -380,7 +380,7 @@ void main_interface(Registers& reg, ProgramCounter& pc, Control& c) {
             step(instruction, reg, c, pc);
         }else if(strcmp(buffer, "Reset") == 0 || strcmp(buffer, "reset") == 0) {
            //reset
-           //call reset fonction
+           reset(pc,reg);
         }else if((strcmp(buffer, "Run") == 0 || strcmp(buffer, "run") == 0) && !finish) {
             while (!finish) {
                 uint32_t instruction;
