@@ -3,6 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <string.h>
+#include <iomanip>
 
 int32_t dataMemory[1000] = {0};
 std::vector<uint32_t> instructionMemory;
