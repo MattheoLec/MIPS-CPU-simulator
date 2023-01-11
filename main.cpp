@@ -256,6 +256,11 @@ void reset(ProgramCounter &pc, Registers &reg) {
 }
 
 void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter& pc){
+    // 0. exit?
+    if(instruction == 0xffffffff){ // 32 bit only 1's
+        std::exit(0);
+    }
+
     // 1. Fetch instruction
     uint8_t op_code = instruction >> 26;
     uint8_t arg1 = (instruction >> 21) & 0b11111;
