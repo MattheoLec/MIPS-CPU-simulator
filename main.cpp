@@ -232,8 +232,13 @@ void InstructionMemory(uint32_t address, uint32_t &instruction) {
     instruction = instructionMemory[address];
 }
 
-void Initialize() {
-    std::system("./assignment1 input.txt files/output_listing.txt files/output_instructions.txt");
+void Initialize(std::string inputFile) {
+    std::stringstream ss;
+    ss << "./assignment1 " << inputFile << " files/output_listing.txt files/output_instructions.txt";
+    const std::string tmp = ss.str();
+    const char* s = tmp.c_str();
+    std::cout << s << std::endl;
+    std::system(s);
     std::fstream instructionFile;
     instructionFile.open("files/output_instructions.txt", std::ios::in);
     std::string line;
@@ -341,20 +346,34 @@ void display_format( ){
     std::cout << "------------FORMAT------------" << std::endl;
     for(unsigned int i : instructionMemory){
         uint32_t op_code = (i >> 26) & 0b111111;
-        std::cout << "Op code : " << std::dec <<  op_code << std::endl;
         if (op_code == 0b000000) { //R-format
-            uint32_t func = (i >> 6) & 0b111111;
-            std::cout << "func : " << func << std::endl;
+            uint32_t rs = (i >> 21) & 0x1F;
+            uint32_t rt = (i >> 16) & 0x1F;
+            uint32_t rd = (i >> 11) & 0x1F;
+            uint32_t shamt = (i >> 6) & 0x1F;
+            uint32_t funct = i & 0b111111;
+            std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')<<i 
+            << " -----> Op : " << std::dec << op_code  
+            << " | rs : " << std::dec << rs 
+            << " | rt : " << std::dec << rt 
+            << " | rd : " << std::dec << rd 
+            << " | shamt : " << std::dec << shamt 
+            << " | funct : " << std::dec << funct << std::endl;
         } else if (op_code == 0b000010) { //J-format
-
-        } else { // I-format
-
+            uint32_t wordadress = i & ((1 << 26) - 1);
+            std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')<<i
+             << " -----> Op : " << std::dec << op_code  
+             << " | word adress : " << std::dec << wordadress << std::endl;
+         } else { // I-format
+            uint32_t rs = (i >> 21) & 0x1F ;
+            uint32_t rt = (i >> 16) & 0x1F;
+            uint32_t immediate = i & 65535; // first 16 bits
+            std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')<<i 
+            << " -----> Op : " << std::dec << op_code  
+            << " | rs : " << std::dec << rs 
+            << " | rt : " << std::dec << rt 
+            << " | imm : " << std::dec << immediate << std::endl;
         }
-        uint32_t arg1 = (i >> 21) & 0b11111;
-        uint32_t arg2 = (i >> 16) & 0b11111;
-        uint32_t arg3 = (i >> 11) & 0b11111;
-        uint32_t arg4 = i & 65535; // first 16 bits
-        std::cout << std::hex << i << std::endl;
     }
 }
 
@@ -415,9 +434,14 @@ void main_interface(Registers& reg, ProgramCounter& pc, Control& c) {
 }
 
 int main(int argc, char* argv[]) {
+    // call like "./executable input_file"
+    if(argc != 2){
+        return 1;
+    }
+
     Control c = Control();
     ProgramCounter pc = ProgramCounter();
     Registers reg = Registers();
-    Initialize();
+    Initialize(argv[1]);
     main_interface(reg,pc,c);
 }
