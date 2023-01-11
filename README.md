@@ -21,7 +21,7 @@
 - [x] Highlight current instruction
 - [x] See the detail of the instruction (different fields)
 - [x] View register values (All those that have been changed since the beginning of the program)
-- [ ] Current PC Value
+- [x] Current PC Value
 - [x] View memory values (All those that have been changed since the beginning of the program)
 - [x] Ability to choose whether values are displayed in decimal or hexadecimal
 - [x] Operation Step
