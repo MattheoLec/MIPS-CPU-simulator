@@ -229,8 +229,9 @@ void InstructionMemory(uint32_t address, uint32_t &instruction) {
 }
 
 void Initialize() {
+    std::system("./assignment1 input.txt files/output_listing.txt files/output_instructions.txt");
     std::fstream instructionFile;
-    instructionFile.open("instructionMemory.txt", std::ios::in);
+    instructionFile.open("files/output_instructions.txt", std::ios::in);
     std::string line;
     uint64_t instruction;
     if (instructionFile.is_open()) {
