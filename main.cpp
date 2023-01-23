@@ -5,6 +5,8 @@
 #include <string.h>
 #include <iomanip>
 
+#include "assembler.hpp"
+
 int32_t dataMemory[1000] = {0};
 std::vector<uint32_t> instructionMemory;
 bool finish = false;
@@ -232,15 +234,15 @@ void InstructionMemory(uint32_t address, uint32_t &instruction) {
     instruction = instructionMemory[address];
 }
 
-void Initialize(std::string inputFile) {
-    std::stringstream ss;
-    ss << "./external/mips-assembler " << inputFile << " ../files/output_listing.txt ../files/output_instructions.txt";
-    const std::string tmp = ss.str();
-    const char* s = tmp.c_str();
-    std::cout << s << std::endl;
-    std::system(s);
+void Initialize(const std::string& inputFile) {
+    // assemble input file
+    std::string output_listing = "./output_listing.txt";
+    std::string output_instructions = "./output_instructions.txt";
+    mips_assembler::assemble(inputFile, output_listing, output_instructions);
+
+    // read instructions
     std::fstream instructionFile;
-    instructionFile.open("../files/output_instructions.txt", std::ios::in);
+    instructionFile.open(output_instructions, std::ios::in);
     std::string line;
     uint64_t instruction;
     if (instructionFile.is_open()) {
