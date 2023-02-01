@@ -313,6 +313,7 @@ void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter
         PCAdd(pc_next, pc_add_result, arg4_32 << 2);
         pc_add_result = c.get(Control::BRANCH) && alu_zero ? pc_add_result : pc_next; // MUX
         pc.action(pc_add_result, pc_next);
+        if (pc.get() / 4 >= instructionMemory.size()) finish = true;
     }
 }
 
@@ -426,6 +427,7 @@ void main_interface(Registers& reg, ProgramCounter& pc, Control& c) {
         }else if((strcmp(buffer, "f") == 0 || strcmp(buffer, "F") == 0) && !finish) {
             display_format();
         }else{
+            if (finish) std::cout << "Execution is finished, ";
             std::cout << "Failed operation "<< std::endl;
         }
 
