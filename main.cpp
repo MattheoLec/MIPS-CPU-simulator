@@ -9,6 +9,7 @@
 
 int32_t dataMemory[1000] = {0};
 std::vector<uint32_t> instructionMemory;
+std::vector<std::string> instructions;
 bool finish = false;
 
 class ProgramCounter {
@@ -239,6 +240,7 @@ void Initialize(const std::string& inputFile) {
     std::string output_listing = "./output_listing.txt";
     std::string output_instructions = "./output_instructions.txt";
     mips_assembler::assemble(inputFile, output_listing, output_instructions);
+    instructions = mips_assembler::getInstructions();
 
     // read instructions
     std::fstream instructionFile;
@@ -334,9 +336,9 @@ void display_instructions(ProgramCounter pc){
     for(int i=0; i< instructionMemory.size() ; i++){
         std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0');
         if((pc.get()/4)==i){
-            std::cout << instructionMemory[i] << " <--" << std::endl;
+            std::cout << instructionMemory[i] << "  <--  " << instructions[i] << std::endl;
         }else{
-            std::cout << instructionMemory[i] << std::endl;
+            std::cout << instructionMemory[i] << "       " << instructions[i] << std::endl;
         }
     }
     if(pc.get()/4 > instructionMemory.size() ){

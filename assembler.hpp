@@ -12,6 +12,8 @@
 
 namespace mips_assembler{
 
+std::vector<std::string> instructions;
+
 enum {
     INSTR_TYPE_R,
     INSTR_TYPE_R_SHIFT,
@@ -403,12 +405,14 @@ void secondPass(std::ifstream &fileReader,
     std::string currentLine;
     int instruction_count = 0;
     std::smatch match;
+    std::smatch match2;
     std::regex regex1(R"(.*(#.*))");
     std::regex regex2((R"(^\s*[^\s#]+\s*#*)"));
     std::regex regex3("[^#]*");
     std::regex regex4((R"(\S*:)"));
     std::regex regex5(":[^#]*[^#\\s]#*");
     std::regex regex6(R"(\S*:)");
+    std::regex regex7(R"(\s*(.*))");
     std::regex firstMatch(R"(^\s*(\S+)\s*$)");
     std::regex secondMatch(R"(^\s*(\S+)\s+(\S+)\s*$)");
     std::regex thirdMatch(R"(^\s*(\S+)\s+(\S+),\s*(\d+)\((\S+)\)\s*$)");
@@ -439,6 +443,8 @@ void secondPass(std::ifstream &fileReader,
                     }
                     lineWithoutComments = std::regex_replace(lineWithoutComments, regex6, "");
                 }
+                std::regex_search(lineWithoutComments, match2, regex7);
+                instructions.push_back(match2.str(1));
                 if (std::regex_search(lineWithoutComments, match, firstMatch)) {
                     result = {match.str(1)};
                 } else if (std::regex_search(lineWithoutComments, match, secondMatch)) {
@@ -508,6 +514,12 @@ void secondPass(std::ifstream &fileReader,
         outputPrinting(outputListing, outputInstructions, result, comment, label, labelCall, instruction_count, labelSingle);
     }
     symbolsOutputPrinting(outputListing, labelAddrMap);
+}
+
+// --------------------------------------------------------
+
+std::vector<std::string> getInstructions () {
+    return instructions;
 }
 
 // --------------------------------------------------------
