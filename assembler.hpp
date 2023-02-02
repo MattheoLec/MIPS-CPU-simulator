@@ -39,6 +39,7 @@ const std::map<std::string, InstructionCodes> INSTR_CODES = {
     {"sw", {0x2B, INSTR_TYPE_I, 0x00}},         // I, NA
     {"beq", {0x04, INSTR_TYPE_I, 0x00}},        // I, NA
     {"addi", {0x08, INSTR_TYPE_I, 0x00}},       // I, NA
+    {"ori", {0x0d, INSTR_TYPE_I, 0x00}},        // I, NA
     {"sll", {0x00, INSTR_TYPE_R_SHIFT, 0x00}},  // R, 0x00
     {"j", {0x02, INSTR_TYPE_J, 0x00}},          // J, NA
     {"jr", {0x00, INSTR_TYPE_R, 0x08}},         // R, 0x08
