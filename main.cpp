@@ -62,7 +62,7 @@ struct Control {
                 break;
 
             case 0b001000:  // addi
-                output = 0b0101000100;
+                output = 0b0101000000;
                 break;
 
             case 0b000010:  // j

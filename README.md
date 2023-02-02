@@ -38,7 +38,7 @@
 
 ### Missing instructions :
 
-- [ ] addi
+- [x] addi
 - [ ] ori
 - [ ] srl
 - [ ] sra
