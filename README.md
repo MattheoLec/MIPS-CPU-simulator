@@ -35,3 +35,11 @@
 - [ ] File input and integration with MIPS assembler (assignment 1)
 - [ ] Testing and integration with the SPIM simulator
 - [ ] User manual
+
+### Missing instructions :
+
+- [ ] addi
+- [ ] ori
+- [ ] srl
+- [ ] sra
+- [ ] jr

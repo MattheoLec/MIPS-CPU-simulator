@@ -28,11 +28,11 @@ class ProgramCounter {
 
 struct Control {
    private:
-    bool flags[9] = {0};
+    bool flags[10] = {0};
 
    public:
     bool get(const size_t& idx) { return flags[idx]; }
-    enum LineNames { REG_DST, ALU_SRC, MEMTO_REG, REG_WRITE, MEM_READ, MEM_WRITE, BRANCH, ALU_OP1, ALU_OP2 };
+    enum LineNames { REG_DST, ALU_SRC, MEMTO_REG, REG_WRITE, MEM_READ, MEM_WRITE, BRANCH, ALU_OP1, ALU_OP2, JUMP};
 
     /**
      * @brief Update all control lines according to the provided op-code.
@@ -46,23 +46,27 @@ struct Control {
 
         switch (input) {
             case 0b0:  // R-format
-                output = 0b100100010;
+                output = 0b1001000100;
                 break;
 
             case 0b100011:  // lw
-                output = 0b011110000;
+                output = 0b0111100000;
                 break;
 
             case 0b101011:  // sw
-                output = 0b010001000;
+                output = 0b0100010000;
                 break;
 
             case 0b000100:  // beq
-                output = 0b000000101;
+                output = 0b0000001010;
                 break;
 
             case 0b001000:  // addi
-                output = 0b010100010;
+                output = 0b0101000100;
+                break;
+
+            case 0b000010:  // j
+                output = 0b0000000001;
                 break;
 
             default:
@@ -71,8 +75,8 @@ struct Control {
         }
 
         // set flags depending on the output
-        for (int i = 0; i < 9; ++i) {
-            flags[i] = output & (0b1 << (8 - i));
+        for (int i = 0; i < 10; ++i) {
+            flags[i] = output & (0b1 << (9 - i));
         }
     }
 };
@@ -281,9 +285,12 @@ void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter
         uint8_t arg2 = (instruction >> 16) & 0b11111;
         uint8_t arg3 = (instruction >> 11) & 0b11111;
         int16_t arg4 = instruction & 65535; // first 16 bits
+        int32_t arg5 = instruction & 67108863; // first 26 bits
         uint32_t pc_next = pc.get() + 4; // PC + 4
         c.update(op_code); // Control Unit
         int32_t arg4_32 = int32_t(arg4); // sign extended
+        arg5 = arg5 << 2; // shift left 2 bits
+        uint32_t jump_address = (pc_next & 0b11110000000000000000000000000000) | arg5; // pc upper 4 bits + arg5 28 bits
 
         // 2. registers
         uint8_t write_reg = c.get(Control::REG_DST) ? arg3 : arg2; // mux
@@ -311,7 +318,8 @@ void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter
         // 6. PC
         uint32_t pc_add_result;
         PCAdd(pc_next, pc_add_result, arg4_32 << 2);
-        pc_add_result = c.get(Control::BRANCH) && alu_zero ? pc_add_result : pc_next; // MUX
+        pc_add_result = c.get(Control::BRANCH) && alu_zero ? pc_add_result : pc_next; // MUX1
+        pc_add_result = c.get(Control::JUMP) ? jump_address : pc_add_result; // MUX2
         pc.action(pc_add_result, pc_next);
         if (pc.get() / 4 >= instructionMemory.size()) finish = true;
     }
