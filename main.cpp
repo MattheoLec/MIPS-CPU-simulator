@@ -7,6 +7,8 @@
 
 #include "assembler.hpp"
 
+constexpr int CNT_CONTROL_FLAGS = 11;
+
 int32_t dataMemory[1000] = {0};
 std::vector<uint32_t> instructionMemory;
 std::vector<std::string> instructions;
@@ -28,49 +30,55 @@ class ProgramCounter {
 
 struct Control {
    private:
-    bool flags[10] = {0};
+    bool flags[CNT_CONTROL_FLAGS] = {0};
 
    public:
     bool get(const size_t& idx) { return flags[idx]; }
-    enum LineNames { REG_DST, ALU_SRC, MEMTO_REG, REG_WRITE, MEM_READ, MEM_WRITE, BRANCH, ALU_OP1, ALU_OP2, JUMP};
+    enum LineNames { REG_DST, ALU_SRC, MEMTO_REG, REG_WRITE, MEM_READ, MEM_WRITE, BRANCH, ALU_OP1, ALU_OP2, JUMP, JUMP_REG};
 
     /**
      * @brief Update all control lines according to the provided op-code.
      *
-     * @param input 6 bit op-code
+     * @param input_opcode 6 bit op-code
+     * @param input_function 6 bit function code
      */
-    void update(uint8_t input) {
+    void update(uint8_t input_opcode, uint8_t input_function) {
         // ensure that only the first 6 bits are used
-        input &= 0b111111;
+        input_opcode &= 0b111111;
+        input_function &= 0b111111;
         uint16_t output = 0b0;
 
-        switch (input) {
+        switch (input_opcode) {
             case 0b0:  // R-format
-                output = 0b1001000100;
+                if(input_function == 0x08){ // jr
+                    output = 0b00000000001;
+                }else{ // default R-instruction
+                    output = 0b10010001000;
+                }
                 break;
 
             case 0b100011:  // lw
-                output = 0b0111100000;
+                output = 0b01111000000;
                 break;
 
             case 0b101011:  // sw
-                output = 0b0100010000;
+                output = 0b01000100000;
                 break;
 
             case 0b000100:  // beq
-                output = 0b0000001010;
+                output = 0b00000010100;
                 break;
 
             case 0b001000:  // addi
-                output = 0b0101000000;
+                output = 0b01010000000;
                 break;
 
             case 0b001101:  // ori
-                output = 0b0101000110;
+                output = 0b01010001100;
                 break;
 
             case 0b000010:  // j
-                output = 0b0000000001;
+                output = 0b00000000010;
                 break;
 
             default:
@@ -79,8 +87,8 @@ struct Control {
         }
 
         // set flags depending on the output
-        for (int i = 0; i < 10; ++i) {
-            flags[i] = output & (0b1 << (9 - i));
+        for (int i = 0; i < CNT_CONTROL_FLAGS; ++i) {
+            flags[i] = output & (0b1 << (CNT_CONTROL_FLAGS - 1 - i));
         }
     }
 };
@@ -292,8 +300,9 @@ void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter
         uint8_t arg3 = (instruction >> 11) & 0b11111;
         int16_t arg4 = instruction & 65535; // first 16 bits
         int32_t arg5 = instruction & 67108863; // first 26 bits
+        uint8_t function_code = arg4 & 0b111111;
         uint32_t pc_next = pc.get() + 4; // PC + 4
-        c.update(op_code); // Control Unit
+        c.update(op_code, function_code); // Control Unit
         int32_t arg4_32 = int32_t(arg4); // sign extended
         arg5 = arg5 << 2; // shift left 2 bits
         uint32_t jump_address = (pc_next & 0b11110000000000000000000000000000) | arg5; // pc upper 4 bits + arg5 28 bits
@@ -310,7 +319,7 @@ void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter
         uint8_t alu_control; // result
         int32_t alu_result; // result
         bool alu_zero; // result
-        ALUControl(alu_op, arg4 & 0b111111, alu_control);
+        ALUControl(alu_op, function_code, alu_control);
         ALU(alu_input1, alu_input2, alu_control, alu_result, alu_zero);
 
         // 4. Data access
@@ -324,8 +333,9 @@ void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter
         // 6. PC
         uint32_t pc_add_result;
         PCAdd(pc_next, pc_add_result, arg4_32 << 2);
-        pc_add_result = c.get(Control::BRANCH) && alu_zero ? pc_add_result : pc_next; // MUX1
-        pc_add_result = c.get(Control::JUMP) ? jump_address : pc_add_result; // MUX2
+        pc_add_result = c.get(Control::BRANCH) && alu_zero ? pc_add_result : pc_next; // MUX1 branch
+        pc_add_result = c.get(Control::JUMP) ? jump_address : pc_add_result; // MUX2 jump
+        pc_add_result = c.get(Control::JUMP_REG) ? read_data1 : pc_add_result; // MUX 3 jr
         pc.action(pc_add_result, pc_next);
         if (pc.get() / 4 >= instructionMemory.size()) finish = true;
     }

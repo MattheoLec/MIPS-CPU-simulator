@@ -42,4 +42,4 @@
 - [x] ori
 - [ ] srl
 - [ ] sra
-- [ ] jr
+- [x] jr
