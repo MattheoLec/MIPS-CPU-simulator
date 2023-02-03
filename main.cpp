@@ -166,9 +166,9 @@ class Registers {
         for (int i = 0; i < 32; ++i) {
             if(registers[i] != 0){
                 std::cout << std::dec;
-                std::cout << "r" << i << " -> ";
+                std::cout << "r" << std::setfill('0') << std::setw(2) << i << " -> ";
                 if(hexa){
-                    std::cout <<  std::hex  ;
+                    std::cout << "0x" << std::hex << std::setfill('0') << std::setw(8);
                 }else{
                     std::cout << std::dec;
                 }

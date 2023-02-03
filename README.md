@@ -40,6 +40,6 @@
 
 - [x] addi
 - [x] ori
-- [ ] srl
-- [ ] sra
+- [x] srl
+- [x] sra
 - [x] jr
