@@ -7,7 +7,7 @@
 
 #include "assembler.hpp"
 
-constexpr int CNT_CONTROL_FLAGS = 11;
+constexpr int CNT_CONTROL_FLAGS = 13;
 
 int32_t dataMemory[1000] = {0};
 std::vector<uint32_t> instructionMemory;
@@ -34,7 +34,8 @@ struct Control {
 
    public:
     bool get(const size_t& idx) { return flags[idx]; }
-    enum LineNames { REG_DST, ALU_SRC, MEMTO_REG, REG_WRITE, MEM_READ, MEM_WRITE, BRANCH, ALU_OP1, ALU_OP2, JUMP, JUMP_REG};
+    enum LineNames { REG_DST, ALU_SRC, MEMTO_REG, REG_WRITE, MEM_READ, MEM_WRITE, BRANCH, 
+        ALU_OP1, ALU_OP2, JUMP, JUMP_REG, SHIFT, SHIFT_LOG};
 
     /**
      * @brief Update all control lines according to the provided op-code.
@@ -50,35 +51,48 @@ struct Control {
 
         switch (input_opcode) {
             case 0b0:  // R-format
-                if(input_function == 0x08){ // jr
-                    output = 0b00000000001;
-                }else{ // default R-instruction
-                    output = 0b10010001000;
+                switch (input_function)
+                {
+                case 0x08: // jr
+                    output = 0b0000000000100;
+                    break;
+
+                case 0x02: // srl
+                    output = 0b1001000100011;
+                    break;
+
+                case 0x03: // sra
+                    output = 0b1001000100010;
+                    break;
+
+                default: // default R-instruction
+                    output = 0b1001000100000;
+                    break;
                 }
                 break;
 
             case 0b100011:  // lw
-                output = 0b01111000000;
+                output = 0b0111100000000;
                 break;
 
             case 0b101011:  // sw
-                output = 0b01000100000;
+                output = 0b0100010000000;
                 break;
 
             case 0b000100:  // beq
-                output = 0b00000010100;
+                output = 0b0000001010000;
                 break;
 
             case 0b001000:  // addi
-                output = 0b01010000000;
+                output = 0b0101000000000;
                 break;
 
             case 0b001101:  // ori
-                output = 0b01010001100;
+                output = 0b0101000110000;
                 break;
 
             case 0b000010:  // j
-                output = 0b00000000010;
+                output = 0b0000000001000;
                 break;
 
             default:
@@ -168,26 +182,34 @@ class Registers {
     }
 };
 
-void ALU(int32_t input1, int32_t input2, uint8_t ALUControl, int32_t &resultALU, bool &zeroFlag) {
-    switch (ALUControl) {
-        case 0b0000: // and
-            resultALU = input1 & input2;
-            break;
-        case 0b0001: // or
-            resultALU = input1 | input2;
-            break;
-        case 0b0010: // add
-            resultALU = input1 + input2;
-            break;
-        case 0b0110: // sub
-            resultALU = input1 - input2;
-            break;
-        case 0b0111: // slt
-            resultALU = input1 < input2;
-            break;
-        case 0b1100: // nor
-            resultALU = ~(input1 | input2);
-            break;
+void ALU(int32_t input1, int32_t input2, uint8_t ALUControl, int32_t &resultALU, bool &zeroFlag, int8_t shift_op) {
+    if(shift_op & 0b10){ // barrel shift
+        if(shift_op & 0b01){ // logical shift
+            resultALU = (uint32_t)input2 >> input1;
+        }else{ // arithmetic
+            resultALU = (int32_t)input2 >> input1;
+        }
+    }else{ // default ALU
+        switch (ALUControl) {
+            case 0b0000: // and
+                resultALU = input1 & input2;
+                break;
+            case 0b0001: // or
+                resultALU = input1 | input2;
+                break;
+            case 0b0010: // add
+                resultALU = input1 + input2;
+                break;
+            case 0b0110: // sub
+                resultALU = input1 - input2;
+                break;
+            case 0b0111: // slt
+                resultALU = input1 < input2;
+                break;
+            case 0b1100: // nor
+                resultALU = ~(input1 | input2);
+                break;
+        }
     }
     resultALU == 0 ? zeroFlag = 1 : zeroFlag = 0;
 }
@@ -302,6 +324,7 @@ void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter
         int16_t arg4 = instruction & 65535; // first 16 bits
         int32_t arg5 = instruction & 67108863; // first 26 bits
         uint8_t function_code = arg4 & 0b111111;
+        uint8_t shamt = (instruction >> 6) & 0b11111;
         uint32_t pc_next = pc.get() + 4; // PC + 4
         c.update(op_code, function_code); // Control Unit
         int32_t arg4_32 = int32_t(arg4); // sign extended
@@ -315,13 +338,15 @@ void step(const int32_t& instruction, Registers& reg, Control& c, ProgramCounter
 
         // 3. ALU
         int32_t alu_input1 = read_data1;
+        alu_input1 = c.get(Control::SHIFT) ? int32_t(shamt) : alu_input1; // MUX shift
         int32_t alu_input2 = c.get(Control::ALU_SRC) ? arg4_32 : read_data2; // MUX
         int8_t alu_op = (c.get(Control::ALU_OP1) << 1)  | c.get(Control::ALU_OP2);
+        int8_t alu_shift_op = (c.get(Control::SHIFT) << 1)  | c.get(Control::SHIFT_LOG);
         uint8_t alu_control; // result
         int32_t alu_result; // result
         bool alu_zero; // result
         ALUControl(alu_op, function_code, alu_control);
-        ALU(alu_input1, alu_input2, alu_control, alu_result, alu_zero);
+        ALU(alu_input1, alu_input2, alu_control, alu_result, alu_zero, alu_shift_op);
 
         // 4. Data access
         int32_t da_read_data; // result
