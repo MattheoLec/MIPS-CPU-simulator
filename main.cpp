@@ -65,6 +65,10 @@ struct Control {
                 output = 0b0101000000;
                 break;
 
+            case 0b001101:  // ori
+                output = 0b0101000110;
+                break;
+
             case 0b000010:  // j
                 output = 0b0000000001;
                 break;
@@ -205,6 +209,8 @@ void ALUControl(uint8_t ALUOp, uint8_t funct, uint8_t &ALUControl) {
         ALUControl = 0b0010;
     } else if (ALUOp == 0b01) { // beq
         ALUControl = 0b0110;
+    } else if (ALUOp == 0b11) { // ori
+        ALUControl = 0b0001;
     }
 }
 

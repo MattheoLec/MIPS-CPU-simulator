@@ -39,7 +39,7 @@
 ### Missing instructions :
 
 - [x] addi
-- [ ] ori
+- [x] ori
 - [ ] srl
 - [ ] sra
 - [ ] jr
