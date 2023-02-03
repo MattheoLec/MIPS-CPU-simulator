@@ -151,6 +151,7 @@ class Registers {
         std::cout << "--------------REGISTER------------------" << std::endl;
         for (int i = 0; i < 32; ++i) {
             if(registers[i] != 0){
+                std::cout << std::dec;
                 std::cout << "r" << i << " -> ";
                 if(hexa){
                     std::cout <<  std::hex  ;
